@@ -2,9 +2,11 @@
 
 
 def f1():
+    "hello, world"
     return 'f1'
+
 assert f1() == 'f1'
-def f2(a, b, c, d): 
+def f2(a, b, c, d):
     return c
 assert f2('a', 'b', 'c', 'd') == 'c'
 def f3(a,b):
@@ -15,7 +17,7 @@ def fact(n):
     if n == 1:
         return 1
     return n * fact(n - 1)
-assert fact(5)==120    
+assert fact(5)==120
 
 def f(a=1, b=-1):
     return a + b

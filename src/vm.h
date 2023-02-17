@@ -102,6 +102,8 @@ public:
             } break;
             case OP_STORE_FUNCTION:
                 {
+                    // APS: Pop the code object off,
+                    // and set it as an attr in the module
                     PyVar obj = frame->pop_value(this);
                     const pkpy::Function_& fn = PyFunction_AS_C(obj);
                     setattr(obj, __module__, frame->_module);
@@ -354,7 +356,7 @@ public:
     bool use_stdio;
     std::ostream* _stdout;
     std::ostream* _stderr;
-    
+
     PyVar builtins;         // builtins module
     PyVar _main;            // __main__ module
 
@@ -454,7 +456,7 @@ public:
             callable = &bm.method;      // get unbound method
             args.extend_self(bm.obj);
         }
-        
+
         if((*callable)->is_type(tp_native_function)){
             const auto& f = OBJ_GET(pkpy::NativeFunc, *callable);
             if(kwargs.size() != 0) TypeError("native_function does not accept keyword arguments");
@@ -491,7 +493,7 @@ public:
                 }
                 if(i < args.size()) TypeError("too many arguments");
             }
-            
+
             for(int i=0; i<kwargs.size(); i+=2){
                 const Str& key = PyStr_AS_C(kwargs[i]);
                 if(!fn->kwArgs.contains(key)){
@@ -666,7 +668,7 @@ public:
             for(int i=0; i<depth; i++) cls = cls->attr(__base__).get();
 
             it = (*root)->attr().find(name);
-            if(it != (*root)->attr().end()) return it->second;        
+            if(it != (*root)->attr().end()) return it->second;
         }else{
             if(obj->is_attr_valid()){
                 it = obj->attr().find(name);
@@ -712,7 +714,7 @@ public:
 
     template<int ARGC>
     void bind_func(Str typeName, Str funcName, NativeFuncRaw fn) {
-        bind_func<ARGC>(_types[typeName], funcName, fn);     
+        bind_func<ARGC>(_types[typeName], funcName, fn);
     }
 
     template<int ARGC>
@@ -869,7 +871,7 @@ public:
     DEF_NATIVE(Range, pkpy::Range, tp_range)
     DEF_NATIVE(Slice, pkpy::Slice, tp_slice)
     DEF_NATIVE(Exception, pkpy::Exception, tp_exception)
-    
+
     // there is only one True/False, so no need to copy them!
     inline bool PyBool_AS_C(const PyVar& obj){return obj == True;}
     inline const PyVar& PyBool(bool value){return value ? True : False;}
@@ -894,7 +896,7 @@ public:
         tp_range = _new_type_object("range");
         tp_module = _new_type_object("module");
         tp_ref = _new_type_object("_ref");
-        
+
         tp_function = _new_type_object("function");
         tp_native_function = _new_type_object("native_function");
         tp_native_iterator = _new_type_object("native_iterator");
@@ -913,7 +915,7 @@ public:
 
         setattr(_t(tp_type), __base__, _t(tp_object));
         setattr(_t(tp_object), __base__, None);
-        
+
         for (auto& [name, type] : _types) {
             setattr(type, __name__, PyStr(name));
         }

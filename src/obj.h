@@ -15,13 +15,14 @@ struct NativeFunc {
     NativeFuncRaw f;
     int argc;       // DONOT include self
     bool method;
-    
+
     NativeFunc(NativeFuncRaw f, int argc, bool method) : f(f), argc(argc), method(method) {}
     inline PyVar operator()(VM* vm, pkpy::Args& args) const;
 };
 
 struct Function {
     Str name;
+    Str docstring;
     CodeObject_ code;
     std::vector<Str> args;
     Str starredArg;                // empty if no *arg
@@ -49,7 +50,7 @@ struct Range {
 
 struct Slice {
     int start = 0;
-    int stop = 0x7fffffff; 
+    int stop = 0x7fffffff;
 
     void normalize(int len){
         if(start < 0) start += len;
@@ -93,6 +94,11 @@ struct PyObject {
 
 template <typename T>
 struct Py_ : PyObject {
+    // APS: Referenced as a template;
+    // Used to convert Python types to equivalent C, such as a float, etc.
+    // sizeof(Py_(i64)) for example.
+    // OBJ_GET(T, obj) (((Py_<T>*)((obj).get()))->_value)
+
     T _value;
 
     Py_(Type type, const T& val): PyObject(type, sizeof(Py_<T>)), _value(val) { _init(); }

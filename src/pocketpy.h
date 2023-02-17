@@ -37,7 +37,7 @@ CodeObject_ VM::compile(Str source, Str filename, CompileMode mode) {
         }                                                                                               \
         return vm->PyBool(vm->num_to_float(args[0]) op vm->num_to_float(args[1]));                      \
     });
-    
+
 
 void init_builtins(VM* _vm) {
     BIND_NUM_ARITH_OPT(__add__, +)
@@ -111,6 +111,14 @@ void init_builtins(VM* _vm) {
     _vm->bind_builtin_func<2>("getattr", [](VM* vm, pkpy::Args& args) {
         Str name = vm->PyStr_AS_C(args[1]);
         return vm->getattr(args[0], name);
+    });
+
+    _vm->bind_builtin_func<1>("help", [](VM* vm, pkpy::Args& args) {
+        if(args[0]->is_type(vm->tp_function)) {
+            return vm->PyStr(vm->PyFunction_AS_C(args[0])->docstring);
+        } else {return vm->PyStr("DOC!");}
+        //  else if (args[0]->is_type(vm->tp_module)
+        // return vm->PyStr(s->docstring);
     });
 
     _vm->bind_builtin_func<1>("hex", [](VM* vm, pkpy::Args& args) {
@@ -790,7 +798,7 @@ public:
         _ptr = new T(std::forward<Args>(args)...);
         _pk_lookup_table.push_back(this);
     }
-    
+
     ~PkExported() override { delete _ptr; }
     void* get() override { return _ptr; }
     operator T*() { return _ptr; }
@@ -803,7 +811,7 @@ extern "C" {
     __EXPORT
     /// Delete a pointer allocated by `pkpy_xxx_xxx`.
     /// It can be `VM*`, `REPL*`, `char*`, etc.
-    /// 
+    ///
     /// !!!
     /// If the pointer is not allocated by `pkpy_xxx_xxx`, the behavior is undefined.
     /// !!!
@@ -826,7 +834,7 @@ extern "C" {
 
     __EXPORT
     /// Get a global variable of a virtual machine.
-    /// 
+    ///
     /// Return `__repr__` of the result.
     /// If the variable is not found, return `nullptr`.
     char* pkpy_vm_get_global(VM* vm, const char* name){
@@ -842,7 +850,7 @@ extern "C" {
 
     __EXPORT
     /// Evaluate an expression.
-    /// 
+    ///
     /// Return `__repr__` of the result.
     /// If there is any error, return `nullptr`.
     char* pkpy_vm_eval(VM* vm, const char* source){

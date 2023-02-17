@@ -176,7 +176,7 @@ private:
             }
         }catch(std::exception& _){
             SyntaxError("invalid number literal");
-        } 
+        }
     }
 
     void lex_token(){
@@ -283,7 +283,7 @@ private:
                         eat_number();
                         return;
                     }
-                    
+
                     switch (parser->eat_name())
                     {
                         case 0: break;
@@ -532,7 +532,7 @@ __LISTCOMP:
         emit(OP_BUILD_LIST, 0);
         EXPR_FOR_VARS();consume(TK("in"));EXPR_TUPLE();
         match_newlines(mode()==REPL_MODE);
-        
+
         int _skipPatch = emit(OP_JUMP_ABSOLUTE);
         int _cond_start = co()->codes.size();
         int _cond_end_return = -1;
@@ -1006,6 +1006,7 @@ __LISTCOMP:
 
     void compile_function(){
         if(is_compiling_class){
+            // TODO: can't pass docstring back to class from here.
             if(match(TK("pass"))) return;
             consume(TK("def"));
         }
@@ -1022,9 +1023,50 @@ __LISTCOMP:
         // eat type hints
         if(match(TK("->"))) consume(TK("@id"));
 
+//        consume(TK(":"));
+        // CUR is `:` now.
+        // if (peek() == TK(":")) {
+        //     func->docstring = vm->PyStr_AS_C(parser->curr.value);
+        // }
+//        parser->set_next_token(TK(":"))
+        // APS: peek_next does NOT work.
+        // PyVar value = parser->prev.value;
+        // Str s = vm->PyStr_AS_C(value);
+
+        // right now parser.cur is `:`
+        // and it will be consumed by compile_block.
+        // we need to get one more ahead of it...
+
+
+        // if (parser-> == TK("@str")) {
+            // what about emitting BUILD_ATTR to set __doc__?
+        //     func->docstring = vm->PyStr_AS_C(parser->prev.value);
+        // } else {
+        //     func->docstring = "NOO" ; // vm->PyStr_AS_C(parser->nexts.front().value);
+        // }
+
         func->code = pkpy::make_shared<CodeObject>(parser->src, func->name);
         this->codes.push(func->code);
-        compile_block_body();
+        // ":" should be peek()
+
+        consume(TK(":"));
+        if(peek()==TK("@str")) func->docstring = vm->PyStr_AS_C(parser->curr.value);
+        if(peek()!=TK("@eol") && peek()!=TK("@eof")){
+//            (this->*action)();  // inline block
+            compile_stmt();
+            return;
+        }
+        if(!match_newlines(mode()==REPL_MODE)){
+            SyntaxError("expected a new line after ':'");
+        }
+        consume(TK("@indent"));
+        while (peek() != TK("@dedent")) {
+            match_newlines();
+            compile_stmt();
+            match_newlines();
+        }
+        consume(TK("@dedent"));
+
         func->code->optimize(vm);
         this->codes.pop();
         emit(OP_LOAD_CONST, co()->add_const(vm->PyFunction(func)));

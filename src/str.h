@@ -148,6 +148,7 @@ namespace std {
 }
 
 const Str __class__ = Str("__class__");
+const Str __doc__ = Str("__doc__");
 const Str __base__ = Str("__base__");
 const Str __new__ = Str("__new__");
 const Str __iter__ = Str("__iter__");
