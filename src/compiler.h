@@ -1050,7 +1050,6 @@ __LISTCOMP:
         // ":" should be peek()
 
         consume(TK(":"));
-        if(peek()==TK("@str")) func->docstring = vm->PyStr_AS_C(parser->curr.value);
         if(peek()!=TK("@eol") && peek()!=TK("@eof")){
 //            (this->*action)();  // inline block
             compile_stmt();
@@ -1060,8 +1059,16 @@ __LISTCOMP:
             SyntaxError("expected a new line after ':'");
         }
         consume(TK("@indent"));
+        if(peek() == TK("@str")) {
+            consume(TK("@str"));
+            func->docstring = vm->PyStr_AS_C(parser->prev.value);
+            match_newlines();
+        }
+
         while (peek() != TK("@dedent")) {
             match_newlines();
+            // NOTE: WHAT IF YOU WANTED NESTED FUNCTION OR CLASS?
+            // WONT WORK.
             compile_stmt();
             match_newlines();
         }

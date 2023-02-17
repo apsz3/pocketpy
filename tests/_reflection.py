@@ -14,3 +14,15 @@ a = {}
 setattr(a, 'b', 1)
 assert a.b == 1
 assert getattr(a, 'b') == 1
+
+
+def f1():
+    "docstring"
+assert help(f1) == "docstring"
+
+def f2():
+    """hello, worl
+
+d"""
+assert help(f2) == "hello, worl\n\nd"
+

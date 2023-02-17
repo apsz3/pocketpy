@@ -2,7 +2,6 @@
 
 
 def f1():
-    "hello, world"
     return 'f1'
 
 assert f1() == 'f1'
